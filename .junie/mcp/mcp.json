@@ -1,0 +1,11 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "/opt/homebrew/Cellar/php/8.5.7/bin/php",
+            "args": [
+                "/Library/WebServer/Documents/diploma-result-portal/__dotfiles_recover/artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}
