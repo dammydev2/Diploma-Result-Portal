@@ -50,7 +50,11 @@ class CourseUnitCrudController extends CrudController
     {
         CRUD::column('code');
         CRUD::column('title');
-        CRUD::column('programme')->type('select')->attribute('name');
+        CRUD::addColumn([
+            'name' => 'programme',
+            'type' => 'select',
+            'attribute' => 'name',
+        ]);
         CRUD::column('year');
         CRUD::column('semester');
         CRUD::column('credit_units')->label('CU');
@@ -67,31 +71,35 @@ class CourseUnitCrudController extends CrudController
     {
         CRUD::setValidation(CourseUnitRequest::class);
 
-        CRUD::field('programme_id')
-            ->type('select')
-            ->entity('programme')
-            ->attribute('name')
-            ->model(Programme::class)
-            ->label('Programme');
+        CRUD::addField([
+            'name' => 'programme_id',
+            'type' => 'select',
+            'entity' => 'programme',
+            'attribute' => 'name',
+            'model' => Programme::class,
+            'label' => 'Programme',
+        ]);
 
         CRUD::field('code');
         CRUD::field('title');
 
-        CRUD::field('year')->type('select_from_array')->options([1 => 'Year 1', 2 => 'Year 2']);
-        CRUD::field('semester')->type('select_from_array')->options([1 => 'Semester 1', 2 => 'Semester 2']);
+        CRUD::addField(['name' => 'year', 'type' => 'select_from_array', 'options' => [1 => 'Year 1', 2 => 'Year 2']]);
+        CRUD::addField(['name' => 'semester', 'type' => 'select_from_array', 'options' => [1 => 'Semester 1', 2 => 'Semester 2']]);
 
         CRUD::field('lecture_hours')->type('number')->label('Lecture hours (L)');
         CRUD::field('practical_hours')->type('number')->label('Practical hours (P)');
         CRUD::field('credit_units')->type('number')->label('Credit units (CU)');
         CRUD::field('contact_hours')->type('number')->label('Contact hours (CH)');
 
-        CRUD::field('prerequisite_course_unit_id')
-            ->type('select')
-            ->entity('prerequisite')
-            ->attribute('code')
-            ->model(CourseUnit::class)
-            ->label('Prerequisite')
-            ->allows_null(true);
+        CRUD::addField([
+            'name' => 'prerequisite_course_unit_id',
+            'type' => 'select',
+            'entity' => 'prerequisite',
+            'attribute' => 'code',
+            'model' => CourseUnit::class,
+            'label' => 'Prerequisite',
+            'allows_null' => true,
+        ]);
     }
 
     /**

@@ -17,16 +17,19 @@ statements of result.
 
 ## Features
 
-### Courses (programmes)
+### Programmes and course units
 
-Admins manage the list of courses (programmes of study, e.g. "National
-Diploma in Computer Science") that students can be enrolled into. Each
-course has a unique **name** and a unique short **code**. This list is
-managed first so that, when the student module is built, a student's
-programme can be picked from these admin-managed records instead of being
-freely typed.
+Admins manage the list of programmes (e.g. "Computer Science" at the
+**National Diploma** or **Higher National Diploma** level) that students can
+be enrolled into, and the individual course units that make up each
+programme's curriculum (e.g. "COM 111 — Introduction to Computing"). This
+data is managed first so that, when the student module is built, a
+student's programme and scores can be picked from these admin-managed
+records instead of being freely typed.
 
-- `/courses` — list, search, add, edit, and delete courses.
+- `/admin/programme` — list, search, add, edit, and delete programmes.
+- `/admin/course-unit` — list, add, edit, and delete course units,
+  including their credit units, contact hours, and prerequisites.
 
 ### Planned next
 
@@ -38,7 +41,11 @@ freely typed.
 ## Tech stack
 
 - Laravel 13 (PHP 8.5)
-- Livewire 4 + Flux UI (Blade-based, no separate JS frontend framework)
+- Laravel Fortify (authentication: login, registration, 2FA, password reset)
+- Backpack for Laravel (the `/admin` panel — programmes, course units, and
+  future CRUD screens)
+- Livewire 4 + Flux UI (account settings only: profile, appearance,
+  security — not used for admin CRUD)
 - SQLite (default local database)
 
 ## Local development

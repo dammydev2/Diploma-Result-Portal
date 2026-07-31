@@ -21,7 +21,7 @@ class CourseUnitFactory extends Factory
         return [
             'programme_id' => Programme::factory(),
             'code' => strtoupper(fake()->unique()->lexify('??? ###')),
-            'title' => ucfirst(fake()->unique()->words(3, true)),
+            'title' => ucfirst(fake()->unique()->word().' '.fake()->word().' '.fake()->word()),
             'lecture_hours' => fake()->numberBetween(1, 2),
             'practical_hours' => fake()->numberBetween(0, 3),
             'credit_units' => fake()->numberBetween(2, 4),

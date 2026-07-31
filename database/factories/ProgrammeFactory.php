@@ -21,7 +21,7 @@ class ProgrammeFactory extends Factory
         $level = fake()->randomElement(ProgrammeLevel::cases());
 
         return [
-            'name' => ucwords(fake()->unique()->words(2, true)),
+            'name' => ucwords(fake()->unique()->word().' '.fake()->unique()->word()),
             'code' => strtoupper(fake()->unique()->lexify('???')).'-'.$level->value,
             'level' => $level,
             'min_credit_units' => 72,

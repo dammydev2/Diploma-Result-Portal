@@ -49,7 +49,11 @@ class ProgrammeCrudController extends CrudController
     protected function setupListOperation()
     {
         CRUD::column('name');
-        CRUD::column('level')->type('closure')->function(fn ($entry) => $entry->level->label());
+        CRUD::addColumn([
+            'name' => 'level',
+            'type' => 'closure',
+            'function' => fn ($entry) => $entry->level->label(),
+        ]);
         CRUD::column('code');
         CRUD::column('min_credit_units')->label('Min CU');
         CRUD::column('max_credit_units')->label('Max CU');
@@ -79,10 +83,12 @@ class ProgrammeCrudController extends CrudController
         CRUD::setValidation(ProgrammeRequest::class);
 
         CRUD::field('name')->attributes(['placeholder' => 'e.g. Computer Science']);
-        CRUD::field('level')
-            ->type('select_from_array')
-            ->options($this->levelOptions())
-            ->allows_null(false);
+        CRUD::addField([
+            'name' => 'level',
+            'type' => 'select_from_array',
+            'options' => $this->levelOptions(),
+            'allows_null' => false,
+        ]);
         CRUD::field('code');
         CRUD::field('min_credit_units')->type('number')->label('Min credit units');
         CRUD::field('max_credit_units')->type('number')->label('Max credit units');
