@@ -28,6 +28,33 @@ class CourseUnitCrudTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_the_create_form_redirects_with_an_error_when_no_programme_exists(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $response = $this->get(route('course-unit.create'));
+
+        $response->assertRedirect(route('course-unit.index'));
+        $response->assertSessionHas('alert_messages');
+    }
+
+    public function test_storing_is_blocked_with_an_error_when_no_programme_exists(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $response = $this->post(route('course-unit.store'), [
+            'code' => 'COM 111',
+            'title' => 'Introduction to Computing',
+            'credit_units' => 3,
+            'year' => 1,
+            'semester' => 1,
+        ]);
+
+        $response->assertRedirect(route('course-unit.index'));
+
+        $this->assertDatabaseMissing('course_units', ['code' => 'COM 111']);
+    }
+
     public function test_a_course_unit_can_be_created(): void
     {
         $this->actingAs(User::factory()->create());
@@ -38,10 +65,7 @@ class CourseUnitCrudTest extends TestCase
             'programme_id' => $programme->id,
             'code' => 'COM 111',
             'title' => 'Introduction to Computing',
-            'lecture_hours' => 2,
-            'practical_hours' => 2,
             'credit_units' => 3,
-            'contact_hours' => 4,
             'year' => 1,
             'semester' => 1,
         ]);
@@ -59,10 +83,12 @@ class CourseUnitCrudTest extends TestCase
     {
         $this->actingAs(User::factory()->create());
 
+        Programme::factory()->create();
+
         $response = $this->post(route('course-unit.store'), []);
 
         $response->assertSessionHasErrors([
-            'programme_id', 'code', 'title', 'lecture_hours', 'practical_hours', 'credit_units', 'contact_hours', 'year', 'semester',
+            'programme_id', 'code', 'title', 'credit_units', 'year', 'semester',
         ]);
     }
 
@@ -76,43 +102,12 @@ class CourseUnitCrudTest extends TestCase
             'programme_id' => $existing->programme_id,
             'code' => $existing->code,
             'title' => 'A different title',
-            'lecture_hours' => 2,
-            'practical_hours' => 2,
             'credit_units' => 3,
-            'contact_hours' => 4,
             'year' => 1,
             'semester' => 1,
         ]);
 
         $response->assertSessionHasErrors(['code']);
-    }
-
-    public function test_a_course_unit_can_have_a_prerequisite(): void
-    {
-        $this->actingAs(User::factory()->create());
-
-        $prerequisite = CourseUnit::factory()->create();
-        $programme = Programme::factory()->create();
-
-        $response = $this->post(route('course-unit.store'), [
-            'programme_id' => $programme->id,
-            'prerequisite_course_unit_id' => $prerequisite->id,
-            'code' => 'COM 121',
-            'title' => 'Programming using C Language',
-            'lecture_hours' => 2,
-            'practical_hours' => 2,
-            'credit_units' => 3,
-            'contact_hours' => 4,
-            'year' => 1,
-            'semester' => 2,
-        ]);
-
-        $response->assertRedirect();
-
-        $this->assertDatabaseHas('course_units', [
-            'code' => 'COM 121',
-            'prerequisite_course_unit_id' => $prerequisite->id,
-        ]);
     }
 
     public function test_a_course_unit_can_be_updated(): void
@@ -126,10 +121,7 @@ class CourseUnitCrudTest extends TestCase
             'programme_id' => $courseUnit->programme_id,
             'code' => 'UPD 111',
             'title' => 'Updated title',
-            'lecture_hours' => $courseUnit->lecture_hours,
-            'practical_hours' => $courseUnit->practical_hours,
             'credit_units' => $courseUnit->credit_units,
-            'contact_hours' => $courseUnit->contact_hours,
             'year' => $courseUnit->year,
             'semester' => $courseUnit->semester,
         ]);

@@ -8,4 +8,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::redirect('dashboard', '/admin')->name('dashboard');
 });
 
-require __DIR__.'/settings.php';
+Route::get('.well-known/passkey-endpoints', function () {
+    return response()->json([
+        'enroll' => route('page.settings.security'),
+        'manage' => route('page.settings.security'),
+    ]);
+})->name('well-known.passkeys');

@@ -17,8 +17,8 @@ class AdminPanelTest extends TestCase
         $response = $this->get('/admin/dashboard');
 
         $response->assertOk();
-        $response->assertSee(route('profile.edit'), false);
-        $response->assertSee(route('security.edit'), false);
+        $response->assertSee(route('page.settings.profile'), false);
+        $response->assertSee(route('page.settings.security'), false);
     }
 
     public function test_the_user_menu_logs_out_via_the_app_logout_route(): void

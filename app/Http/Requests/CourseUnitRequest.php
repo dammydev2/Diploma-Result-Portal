@@ -29,13 +29,9 @@ class CourseUnitRequest extends FormRequest
 
         return [
             'programme_id' => ['required', 'exists:programmes,id'],
-            'prerequisite_course_unit_id' => ['nullable', 'exists:course_units,id'],
             'code' => ['required', 'string', 'max:20', Rule::unique('course_units', 'code')->ignore($courseUnitId)],
             'title' => ['required', 'string', 'max:255'],
-            'lecture_hours' => ['required', 'integer', 'min:0'],
-            'practical_hours' => ['required', 'integer', 'min:0'],
             'credit_units' => ['required', 'integer', 'min:1'],
-            'contact_hours' => ['required', 'integer', 'min:1'],
             'year' => ['required', 'integer', 'in:1,2'],
             'semester' => ['required', 'integer', 'in:1,2'],
         ];

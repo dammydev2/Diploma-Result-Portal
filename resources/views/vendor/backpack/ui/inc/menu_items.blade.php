@@ -3,3 +3,5 @@
 
 <x-backpack::menu-item title="Programmes" icon="la la-graduation-cap" :link="backpack_url('programme')" />
 <x-backpack::menu-item title="Course units" icon="la la-book" :link="backpack_url('course-unit')" />
+<x-backpack::menu-item title="Courses" icon="la la-list" :link="backpack_url('courses')" />
+<x-backpack::menu-item title="Settings" icon="la la-cog" :link="route('page.settings.profile')" />

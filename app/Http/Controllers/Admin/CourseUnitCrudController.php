@@ -13,6 +13,8 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 
 /**
  * Class CourseUnitCrudController
@@ -21,7 +23,10 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
  */
 class CourseUnitCrudController extends CrudController
 {
-    use CreateOperation;
+    use CreateOperation {
+        create as protected traitCreate;
+        store as protected traitStore;
+    }
     use DeleteOperation;
     use ListOperation;
     use ShowOperation;
@@ -86,20 +91,7 @@ class CourseUnitCrudController extends CrudController
         CRUD::addField(['name' => 'year', 'type' => 'select_from_array', 'options' => [1 => 'Year 1', 2 => 'Year 2']]);
         CRUD::addField(['name' => 'semester', 'type' => 'select_from_array', 'options' => [1 => 'Semester 1', 2 => 'Semester 2']]);
 
-        CRUD::field('lecture_hours')->type('number')->label('Lecture hours (L)');
-        CRUD::field('practical_hours')->type('number')->label('Practical hours (P)');
         CRUD::field('credit_units')->type('number')->label('Credit units (CU)');
-        CRUD::field('contact_hours')->type('number')->label('Contact hours (CH)');
-
-        CRUD::addField([
-            'name' => 'prerequisite_course_unit_id',
-            'type' => 'select',
-            'entity' => 'prerequisite',
-            'attribute' => 'code',
-            'model' => CourseUnit::class,
-            'label' => 'Prerequisite',
-            'allows_null' => true,
-        ]);
     }
 
     /**
@@ -112,5 +104,45 @@ class CourseUnitCrudController extends CrudController
     protected function setupUpdateOperation()
     {
         $this->setupCreateOperation();
+    }
+
+    /**
+     * Show the form for creating a new course unit, unless no programme exists yet.
+     *
+     * @return View|RedirectResponse
+     */
+    public function create()
+    {
+        if ($this->noProgrammesExist()) {
+            return $this->redirectForMissingProgramme();
+        }
+
+        return $this->traitCreate();
+    }
+
+    /**
+     * Store a newly created course unit, unless no programme exists yet.
+     *
+     * @return RedirectResponse
+     */
+    public function store()
+    {
+        if ($this->noProgrammesExist()) {
+            return $this->redirectForMissingProgramme();
+        }
+
+        return $this->traitStore();
+    }
+
+    private function noProgrammesExist(): bool
+    {
+        return ! Programme::query()->exists();
+    }
+
+    private function redirectForMissingProgramme(): RedirectResponse
+    {
+        \Alert::error('You need to add a programme before adding a course unit.')->flash();
+
+        return redirect()->to($this->crud->route);
     }
 }

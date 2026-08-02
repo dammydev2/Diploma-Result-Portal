@@ -20,13 +20,9 @@ class CourseUnit extends Model
      */
     protected $fillable = [
         'programme_id',
-        'prerequisite_course_unit_id',
         'code',
         'title',
-        'lecture_hours',
-        'practical_hours',
         'credit_units',
-        'contact_hours',
         'year',
         'semester',
     ];
@@ -37,13 +33,5 @@ class CourseUnit extends Model
     public function programme(): BelongsTo
     {
         return $this->belongsTo(Programme::class);
-    }
-
-    /**
-     * @return BelongsTo<CourseUnit, $this>
-     */
-    public function prerequisite(): BelongsTo
-    {
-        return $this->belongsTo(self::class, 'prerequisite_course_unit_id');
     }
 }

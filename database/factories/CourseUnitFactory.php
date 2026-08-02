@@ -22,10 +22,7 @@ class CourseUnitFactory extends Factory
             'programme_id' => Programme::factory(),
             'code' => strtoupper(fake()->unique()->lexify('??? ###')),
             'title' => ucfirst(fake()->unique()->word().' '.fake()->word().' '.fake()->word()),
-            'lecture_hours' => fake()->numberBetween(1, 2),
-            'practical_hours' => fake()->numberBetween(0, 3),
             'credit_units' => fake()->numberBetween(2, 4),
-            'contact_hours' => fake()->numberBetween(2, 4),
             'year' => fake()->numberBetween(1, 2),
             'semester' => fake()->numberBetween(1, 2),
         ];

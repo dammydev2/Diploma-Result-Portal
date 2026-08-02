@@ -21,24 +21,6 @@ class CourseUnitTest extends TestCase
         $this->assertTrue($programme->courseUnits->contains($courseUnit));
     }
 
-    public function test_a_course_unit_can_have_a_prerequisite(): void
-    {
-        $prerequisite = CourseUnit::factory()->create();
-
-        $courseUnit = CourseUnit::factory()->create([
-            'prerequisite_course_unit_id' => $prerequisite->id,
-        ]);
-
-        $this->assertTrue($courseUnit->prerequisite->is($prerequisite));
-    }
-
-    public function test_a_course_unit_can_have_no_prerequisite(): void
-    {
-        $courseUnit = CourseUnit::factory()->create(['prerequisite_course_unit_id' => null]);
-
-        $this->assertNull($courseUnit->prerequisite);
-    }
-
     public function test_deleting_a_programme_deletes_its_course_units(): void
     {
         $programme = Programme::factory()->create();
