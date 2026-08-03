@@ -96,6 +96,29 @@ programme, so you never land on an empty combination), and see matching
 students with an Active/Suspended badge and a **TOTAL STUDENTS** row. Also
 exportable to **PDF** or **Excel**.
 
+### Grading scale (`/admin/grading-scale`)
+
+The mark-range → letter-grade → weighting table used to convert a raw score
+into a grade point when scores are recorded:
+
+| Marked range  | Letter grade | Weighting |
+|---------------|:------------:|:---------:|
+| 75 and above  | A            | 4.00      |
+| 70 – 74       | AB           | 3.50      |
+| 65 – 69       | B            | 3.25      |
+| 60 – 64       | BC           | 3.00      |
+| 55 – 59       | C            | 2.75      |
+| 50 – 54       | CD           | 2.50      |
+| 45 – 49       | D            | 2.25      |
+| 40 – 44       | E            | 2.00      |
+| Below 40      | F            | 0.00      |
+
+This is fixed reference data, seeded via `GradingScaleSeeder`, so the admin
+screen deliberately only supports **viewing and editing** existing bands,
+not adding or deleting them. `GradingScale::forScore(int $score)` looks up
+the matching band for a given mark and will be what result entry uses to
+derive a grade.
+
 ### Planned next
 
 - Semester score entry and CGPA calculation.

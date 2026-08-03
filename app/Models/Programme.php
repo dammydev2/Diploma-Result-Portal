@@ -58,9 +58,11 @@ class Programme extends Model
      * The programme's name with its level, e.g. "Computer Science (ND)" —
      * used anywhere a programme is picked from a list, since the name alone
      * is ambiguous once the same programme exists at both ND and HND level.
+     *
+     * @return Attribute<non-falsy-string, never>
      */
     protected function nameWithLevel(): Attribute
     {
-        return Attribute::get(fn (): string => "{$this->name} ({$this->level->value})");
+        return Attribute::get(fn (): string => sprintf('%s (%s)', $this->name, $this->level->value));
     }
 }

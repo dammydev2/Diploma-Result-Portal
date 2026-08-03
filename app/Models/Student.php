@@ -44,6 +44,9 @@ class Student extends Model
         return $this->belongsTo(Programme::class);
     }
 
+    /**
+     * @return Attribute<bool, never>
+     */
     protected function isSuspended(): Attribute
     {
         return Attribute::get(fn (): bool => ! is_null($this->suspended_at));

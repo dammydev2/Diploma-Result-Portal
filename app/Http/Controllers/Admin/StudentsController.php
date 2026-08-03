@@ -45,7 +45,7 @@ class StudentsController extends Controller
 
         $pdf = Pdf::loadView('admin.students-pdf', $filters);
 
-        return $pdf->download($this->exportFilename($filters).'.pdf');
+        return $pdf->download($this->exportFilename($filters['selectedProgramme'], $filters['yearOfAdmission']).'.pdf');
     }
 
     public function exportExcel(Request $request): Response
@@ -71,7 +71,7 @@ class StudentsController extends Controller
 
         $writer->close();
 
-        return response()->download($tempPath, $this->exportFilename($filters).'.xlsx')->deleteFileAfterSend();
+        return response()->download($tempPath, $this->exportFilename($filters['selectedProgramme'], $filters['yearOfAdmission']).'.xlsx')->deleteFileAfterSend();
     }
 
     /**
@@ -113,14 +113,8 @@ class StudentsController extends Controller
         ];
     }
 
-    /**
-     * @param  array{selectedProgramme: ?Programme, yearOfAdmission: ?int}  $filters
-     */
-    private function exportFilename(array $filters): string
+    private function exportFilename(Programme $programme, int $yearOfAdmission): string
     {
-        return Str::slug($filters['selectedProgramme']->name
-            .'-'.$filters['selectedProgramme']->level->value
-            .'-'.$filters['yearOfAdmission']
-            .'-students');
+        return Str::slug($programme->name.'-'.$programme->level->value.'-'.$yearOfAdmission.'-students');
     }
 }
