@@ -5,6 +5,7 @@
 <x-backpack::menu-item title="Add Students" icon="la la-user-plus" :link="backpack_url('student')" />
 <x-backpack::menu-item title="Add Course units" icon="la la-book" :link="backpack_url('course-unit')" />
 <x-backpack::menu-item title="Grading scale" icon="la la-percent" :link="backpack_url('grading-scale')" />
+<x-backpack::menu-item title="Diploma classification" icon="la la-award" :link="backpack_url('diploma-classification')" />
 <x-backpack::menu-item title="Students" icon="la la-users" :link="backpack_url('students')" />
 <x-backpack::menu-item title="Courses" icon="la la-list" :link="backpack_url('courses')" />
 <x-backpack::menu-item title="Settings" icon="la la-cog" :link="route('page.settings.profile')" />

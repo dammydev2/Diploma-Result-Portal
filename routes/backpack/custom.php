@@ -45,6 +45,7 @@ Route::group([
     Route::get('students/export/pdf', 'StudentsController@exportPdf')->name('page.students.export.pdf');
     Route::get('students/export/excel', 'StudentsController@exportExcel')->name('page.students.export.excel');
     Route::crud('grading-scale', 'GradingScaleCrudController');
+    Route::crud('diploma-classification', 'DiplomaClassificationCrudController');
 }); // this should be the absolute last line of this file
 
 /**

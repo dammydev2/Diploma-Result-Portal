@@ -119,6 +119,24 @@ not adding or deleting them. `GradingScale::forScore(int $score)` looks up
 the matching band for a given mark and will be what result entry uses to
 derive a grade.
 
+### Diploma classification (`/admin/diploma-classification`)
+
+The CGPA → class-of-pass table used once a student's final CGPA is
+calculated, to determine their overall result classification:
+
+| Class (level of pass) | CGPA           |
+|------------------------|:--------------:|
+| Distinction             | 3.50 and above |
+| Upper Credit             | 3.00 – 3.49    |
+| Lower Credit             | 2.50 – 2.99    |
+| Pass                     | 2.00 – 2.49    |
+| Fail                     | Below 2.00     |
+
+Same shape as the grading scale above: fixed reference data seeded via
+`DiplomaClassificationSeeder`, admin screen only supports **viewing and
+editing**, and `DiplomaClassification::forCgpa(float $cgpa)` looks up the
+matching band for a given CGPA.
+
 ### Planned next
 
 - Semester score entry and CGPA calculation.

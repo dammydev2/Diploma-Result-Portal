@@ -23,5 +23,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call(GradingScaleSeeder::class);
+        $this->call(DiplomaClassificationSeeder::class);
     }
 }
