@@ -38,6 +38,12 @@ Route::group([
         Route::delete('settings/security/two-factor', 'SecurityController@disableTwoFactor')->name('page.settings.security.two-factor.disable');
         Route::post('settings/security/two-factor/recovery-codes', 'SecurityController@regenerateRecoveryCodes')->name('page.settings.security.recovery-codes');
     });
+    Route::crud('student', 'StudentCrudController');
+    Route::put('student/{id}/suspend', 'StudentCrudController@suspend')->name('student.suspend');
+    Route::put('student/{id}/reactivate', 'StudentCrudController@reactivate')->name('student.reactivate');
+    Route::get('students', 'StudentsController@index')->name('page.students.index');
+    Route::get('students/export/pdf', 'StudentsController@exportPdf')->name('page.students.export.pdf');
+    Route::get('students/export/excel', 'StudentsController@exportExcel')->name('page.students.export.excel');
 }); // this should be the absolute last line of this file
 
 /**

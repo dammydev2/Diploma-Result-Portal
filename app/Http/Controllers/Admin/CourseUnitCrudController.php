@@ -58,7 +58,7 @@ class CourseUnitCrudController extends CrudController
         CRUD::addColumn([
             'name' => 'programme',
             'type' => 'select',
-            'attribute' => 'name',
+            'attribute' => 'name_with_level',
         ]);
         CRUD::column('year');
         CRUD::column('semester');
@@ -80,7 +80,7 @@ class CourseUnitCrudController extends CrudController
             'name' => 'programme_id',
             'type' => 'select',
             'entity' => 'programme',
-            'attribute' => 'name',
+            'attribute' => 'name_with_level',
             'model' => Programme::class,
             'label' => 'Programme',
         ]);

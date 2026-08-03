@@ -19,10 +19,10 @@ statements of result.
 
 ### One unified admin panel
 
-Everything in this app — data management (Programmes, Course units), the
-course browser, and account settings (Profile, Security) — lives inside a
-single Backpack admin panel at `/admin`, using Backpack's own Bootstrap/Tabler
-theme throughout.
+Everything in this app — data management (Programmes, Course units,
+Students), the course and student browsers, and account settings (Profile,
+Security) — lives inside a single Backpack admin panel at `/admin`, using
+Backpack's own Bootstrap/Tabler theme throughout.
 
 This wasn't the starting point: the Laravel Livewire starter kit's own
 Tailwind/Flux UI shell was originally used for account settings (profile,
@@ -66,10 +66,38 @@ units in a table with a bolded **TOTAL UNITS** row summing the credit units.
 The filtered result can be exported to **PDF** or **Excel** via buttons
 above the table.
 
+### Students
+
+Admins manage student records: name, matric number, year of admission, and
+programme.
+
+- `/admin/student` — list, add, edit students. There is deliberately **no
+  delete** — per the domain rule above, a student can only be **suspended**
+  or **reactivated**, via a line button on the list (this is what a
+  suspended student's inability to have new scores recorded will eventually
+  hook into). Like course units, you can't add a student until at least one
+  programme exists.
+- A student's **level** (ND/HND) isn't its own field — it's read from
+  `student.programme.level`. Since "Computer Science (ND)" and "Computer
+  Science (HND)" are stored as two separate `Programme` rows (see above),
+  a student's `programme_id` always unambiguously implies its level, so
+  storing level again on the student would just be duplicating that fact.
+- A student's **matric number** is unique across the whole school (not
+  scoped to a programme, unlike course unit codes).
+- A programme can't be deleted while it still has students attached
+  (enforced at the database level), consistent with never losing student
+  records.
+
+### Student browser (`/admin/students`)
+
+Mirrors the course browser: pick a **Programme**, then a **Year of
+admission** (populated from the years that actually have students in that
+programme, so you never land on an empty combination), and see matching
+students with an Active/Suspended badge and a **TOTAL STUDENTS** row. Also
+exportable to **PDF** or **Excel**.
+
 ### Planned next
 
-- Student records (name, year of admission, programme, matric number,
-  suspend/reactivate — no hard delete).
 - Semester score entry and CGPA calculation.
 - Statement of result generation/printing after the 4th semester.
 
@@ -78,14 +106,14 @@ above the table.
 - Laravel 13 (PHP 8.5)
 - Laravel Fortify (authentication: login, registration, 2FA with recovery
   codes, passkeys, password reset)
-- Backpack for Laravel (the `/admin` panel — all data management, the course
-  browser, and account settings share this one theme)
+- Backpack for Laravel (the `/admin` panel — all data management, the
+  course/student browsers, and account settings share this one theme)
 - Livewire 4 + Flux UI (guest-facing auth pages only — login, register,
   password reset, 2FA challenge; not used anywhere behind login)
-- barryvdh/laravel-dompdf (PDF export on the course browser)
-- openspout/openspout (Excel export on the course browser — `maatwebsite/
-  excel` was tried first but its underlying spreadsheet library doesn't yet
-  support PHP 8.5)
+- barryvdh/laravel-dompdf (PDF export on the course and student browsers)
+- openspout/openspout (Excel export on the course and student browsers —
+  `maatwebsite/excel` was tried first but its underlying spreadsheet library
+  doesn't yet support PHP 8.5)
 - MySQL (local development database, via `.env`)
 
 ## Local development

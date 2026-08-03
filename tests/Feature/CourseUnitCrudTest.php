@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ProgrammeLevel;
 use App\Models\CourseUnit;
 use App\Models\Programme;
 use App\Models\User;
@@ -161,6 +162,20 @@ class CourseUnitCrudTest extends TestCase
             'code' => 'UPD 111',
             'title' => 'Updated title',
         ]);
+    }
+
+    public function test_the_create_form_disambiguates_same_named_programmes_by_level(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Programme::factory()->create(['name' => 'Computer Science', 'level' => ProgrammeLevel::NationalDiploma]);
+        Programme::factory()->create(['name' => 'Computer Science', 'level' => ProgrammeLevel::HigherNationalDiploma]);
+
+        $response = $this->get(route('course-unit.create'));
+
+        $response->assertOk();
+        $response->assertSee('Computer Science (ND)');
+        $response->assertSee('Computer Science (HND)');
     }
 
     public function test_a_course_unit_can_be_deleted(): void
