@@ -19,6 +19,8 @@ Route::group([
     Route::crud('programme', 'ProgrammeCrudController');
     Route::crud('course-unit', 'CourseUnitCrudController');
     Route::get('courses', 'CoursesController@index')->name('page.courses.index');
+    Route::get('courses/export/pdf', 'CoursesController@exportPdf')->name('page.courses.export.pdf');
+    Route::get('courses/export/excel', 'CoursesController@exportExcel')->name('page.courses.export.excel');
 
     Route::get('settings', function () {
         return redirect()->route('page.settings.profile');

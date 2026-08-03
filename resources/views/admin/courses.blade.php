@@ -65,6 +65,18 @@
                         @if ($courseUnits->isEmpty())
                             <p class="text-muted mb-0">No courses found for this selection.</p>
                         @else
+                            @php
+                                $exportParams = ['programme_id' => $programmeId, 'year' => $year, 'semester' => $semester];
+                            @endphp
+                            <div class="d-flex justify-content-end gap-2 mb-3 d-print-none">
+                                <a href="{{ route('page.courses.export.pdf', $exportParams) }}" class="btn btn-outline-danger btn-sm">
+                                    <i class="la la-file-pdf-o"></i> Export PDF
+                                </a>
+                                <a href="{{ route('page.courses.export.excel', $exportParams) }}" class="btn btn-outline-success btn-sm">
+                                    <i class="la la-file-excel-o"></i> Export Excel
+                                </a>
+                            </div>
+
                             <div class="table-responsive">
                                 <table class="table table-vcenter card-table">
                                     <thead>
@@ -84,9 +96,9 @@
                                         @endforeach
                                     </tbody>
                                     <tfoot>
-                                        <tr class="fw-bold fs-5 border-top border-2">
-                                            <th colspan="2" class="text-end">TOTAL UNITS</th>
-                                            <th>{{ $totalUnits }}</th>
+                                        <tr class="border-top border-2">
+                                            <td colspan="2" class="text-end" style="text-transform: none; font-size: 1.25rem; font-weight: 800;">TOTAL UNITS</td>
+                                            <td style="font-size: 1.25rem; font-weight: 800;">{{ $totalUnits }}</td>
                                         </tr>
                                     </tfoot>
                                 </table>

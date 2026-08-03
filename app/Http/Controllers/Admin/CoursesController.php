@@ -5,9 +5,16 @@ namespace App\Http\Controllers\Admin;
 use App\Models\CourseUnit;
 use App\Models\Programme;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Writer\XLSX\Writer as ExcelWriter;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Class CoursesController
@@ -17,6 +24,60 @@ use Illuminate\Routing\Controller;
 class CoursesController extends Controller
 {
     public function index(Request $request): View
+    {
+        $filters = $this->resolveFilters($request);
+
+        return view('admin.courses', [
+            'title' => 'Courses',
+            'breadcrumbs' => [
+                trans('backpack::crud.admin') => backpack_url('dashboard'),
+                'Courses' => false,
+            ],
+            ...$filters,
+        ]);
+    }
+
+    public function exportPdf(Request $request): Response
+    {
+        $filters = $this->resolveFilters($request);
+
+        abort_unless($filters['selectedProgramme'] && $filters['year'] && $filters['semester'], 404);
+
+        $pdf = Pdf::loadView('admin.courses-pdf', $filters);
+
+        return $pdf->download($this->exportFilename($filters).'.pdf');
+    }
+
+    public function exportExcel(Request $request): Response
+    {
+        $filters = $this->resolveFilters($request);
+
+        abort_unless($filters['selectedProgramme'] && $filters['year'] && $filters['semester'], 404);
+
+        $tempPath = tempnam(sys_get_temp_dir(), 'course-units').'.xlsx';
+
+        $writer = new ExcelWriter;
+        $writer->openToFile($tempPath);
+
+        $headerStyle = new Style(fontBold: true);
+
+        $writer->addRow(Row::fromValuesWithStyle(['Code', 'Title', 'Credit units'], $headerStyle));
+
+        foreach ($filters['courseUnits'] as $courseUnit) {
+            $writer->addRow(Row::fromValues([$courseUnit->code, $courseUnit->title, $courseUnit->credit_units]));
+        }
+
+        $writer->addRow(Row::fromValuesWithStyle(['', 'TOTAL UNITS', $filters['totalUnits']], $headerStyle));
+
+        $writer->close();
+
+        return response()->download($tempPath, $this->exportFilename($filters).'.xlsx')->deleteFileAfterSend();
+    }
+
+    /**
+     * @return array{programmes: Collection<int, Programme>, selectedProgramme: ?Programme, programmeId: ?int, year: ?int, semester: ?int, courseUnits: Collection<int, CourseUnit>, totalUnits: int}
+     */
+    private function resolveFilters(Request $request): array
     {
         $programmes = Programme::query()->orderBy('name')->get();
 
@@ -35,12 +96,7 @@ class CoursesController extends Controller
                 ->get()
             : collect();
 
-        return view('admin.courses', [
-            'title' => 'Courses',
-            'breadcrumbs' => [
-                trans('backpack::crud.admin') => backpack_url('dashboard'),
-                'Courses' => false,
-            ],
+        return [
             'programmes' => $programmes,
             'selectedProgramme' => $selectedProgramme,
             'programmeId' => $programmeId,
@@ -48,6 +104,17 @@ class CoursesController extends Controller
             'semester' => $semester,
             'courseUnits' => $courseUnits,
             'totalUnits' => $courseUnits->sum('credit_units'),
-        ]);
+        ];
+    }
+
+    /**
+     * @param  array{selectedProgramme: ?Programme, year: ?int, semester: ?int}  $filters
+     */
+    private function exportFilename(array $filters): string
+    {
+        return Str::slug($filters['selectedProgramme']->name
+            .'-'.$filters['selectedProgramme']->level->value
+            .$filters['year']
+            .'-semester-'.$filters['semester']);
     }
 }
