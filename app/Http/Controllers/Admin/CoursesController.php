@@ -47,6 +47,7 @@ class CoursesController extends Controller
             'year' => $year,
             'semester' => $semester,
             'courseUnits' => $courseUnits,
+            'totalUnits' => $courseUnits->sum('credit_units'),
         ]);
     }
 }

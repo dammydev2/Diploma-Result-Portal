@@ -83,6 +83,12 @@
                                             </tr>
                                         @endforeach
                                     </tbody>
+                                    <tfoot>
+                                        <tr class="fw-bold fs-5 border-top border-2">
+                                            <th colspan="2" class="text-end">TOTAL UNITS</th>
+                                            <th>{{ $totalUnits }}</th>
+                                        </tr>
+                                    </tfoot>
                                 </table>
                             </div>
                         @endif

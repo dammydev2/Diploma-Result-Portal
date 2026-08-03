@@ -92,7 +92,7 @@ class CourseUnitCrudTest extends TestCase
         ]);
     }
 
-    public function test_course_unit_code_must_be_unique(): void
+    public function test_course_unit_code_must_be_unique_within_the_same_programme(): void
     {
         $this->actingAs(User::factory()->create());
 
@@ -108,6 +108,34 @@ class CourseUnitCrudTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors(['code']);
+    }
+
+    public function test_course_unit_code_can_repeat_across_different_programmes(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $existing = CourseUnit::factory()->create(['code' => 'COM 111']);
+        $otherProgramme = Programme::factory()->create();
+
+        $response = $this->post(route('course-unit.store'), [
+            'programme_id' => $otherProgramme->id,
+            'code' => 'COM 111',
+            'title' => 'Introduction to Computing',
+            'credit_units' => 3,
+            'year' => 1,
+            'semester' => 1,
+        ]);
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('course_units', [
+            'programme_id' => $existing->programme_id,
+            'code' => 'COM 111',
+        ]);
+        $this->assertDatabaseHas('course_units', [
+            'programme_id' => $otherProgramme->id,
+            'code' => 'COM 111',
+        ]);
     }
 
     public function test_a_course_unit_can_be_updated(): void

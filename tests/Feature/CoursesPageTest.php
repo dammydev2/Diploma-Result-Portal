@@ -57,6 +57,44 @@ class CoursesPageTest extends TestCase
         $response->assertDontSee($otherSemester->code);
     }
 
+    public function test_the_total_units_are_shown_for_the_selected_filters(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $programme = Programme::factory()->create();
+
+        CourseUnit::factory()->create([
+            'programme_id' => $programme->id,
+            'year' => 1,
+            'semester' => 1,
+            'credit_units' => 3,
+        ]);
+
+        CourseUnit::factory()->create([
+            'programme_id' => $programme->id,
+            'year' => 1,
+            'semester' => 1,
+            'credit_units' => 4,
+        ]);
+
+        CourseUnit::factory()->create([
+            'programme_id' => $programme->id,
+            'year' => 1,
+            'semester' => 2,
+            'credit_units' => 9,
+        ]);
+
+        $response = $this->get(route('page.courses.index', [
+            'programme_id' => $programme->id,
+            'year' => 1,
+            'semester' => 1,
+        ]));
+
+        $response->assertOk();
+        $response->assertSee('TOTAL UNITS');
+        $response->assertSeeInOrder(['TOTAL UNITS', '7']);
+    }
+
     public function test_no_courses_are_shown_until_a_full_selection_is_made(): void
     {
         $this->actingAs(User::factory()->create());
