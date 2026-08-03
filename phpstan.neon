@@ -11,3 +11,11 @@ parameters:
         - routes/
 
     level: 7
+
+    # Without this, Larastan can't see casts declared via the modern
+    # `protected function casts(): array` method (only the legacy `$casts`
+    # property), since it resolves casts by instantiating models with
+    # newInstanceWithoutConstructor() — which skips the boot-time logic
+    # that merges casts() into place. This makes it statically parse the
+    # casts() method body instead.
+    parseModelCastsMethod: true
