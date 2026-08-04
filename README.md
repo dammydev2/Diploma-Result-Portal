@@ -137,10 +137,36 @@ Same shape as the grading scale above: fixed reference data seeded via
 editing**, and `DiplomaClassification::forCgpa(float $cgpa)` looks up the
 matching band for a given CGPA.
 
+### Score entry (`/admin/scores`)
+
+A bulk "mark sheet" for recording scores: pick a **Programme**, then a
+**Year of admission** (the student cohort — same dimensions as the student
+browser above), then a **Course unit**, and enter a 0–100 score for each
+student in that cohort in one form, submitted all at once. Suspended
+students show with no input at all, so they can never get a new score
+regardless of what's submitted (enforced again server-side, not just hidden
+in the UI). Existing scores pre-fill so the sheet doubles as an edit screen.
+
+The letter grade and grade point are **derived and stored at the point of
+entry** (not recalculated later) — `Score` automatically looks up the
+matching `GradingScale` band whenever its `score` is set or changed. This
+was a deliberate choice: a later edit to the grading scale table shouldn't
+silently rewrite a result that's already been recorded.
+
+GPA calculation follows the standard formula, using each course unit's
+credit units as the weight:
+
+```
+GPA = Σ(grade_point × credit_units) / Σ(credit_units)
+```
+
+- `Student::gpaFor(int $year, int $semester)` — GPA for one semester of study.
+- `Student::cgpa()` — cumulative GPA across every score recorded so far.
+
 ### Planned next
 
-- Semester score entry and CGPA calculation.
-- Statement of result generation/printing after the 4th semester.
+- Statement of result generation/printing after the 4th semester, combining
+  the diploma classification table above with a student's final CGPA.
 
 ## Tech stack
 
