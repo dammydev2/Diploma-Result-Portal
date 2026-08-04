@@ -128,4 +128,39 @@ class StudentTest extends TestCase
 
         $this->assertNull($student->cgpa());
     }
+
+    public function test_cgpa_through_semester_only_covers_semesters_up_to_and_including_it(): void
+    {
+        $this->seed(GradingScaleSeeder::class);
+
+        $programme = Programme::factory()->create();
+        $student = Student::factory()->create(['programme_id' => $programme->id]);
+
+        $courseA = CourseUnit::factory()->create(['programme_id' => $programme->id, 'credit_units' => 3, 'year' => 1, 'semester' => 1]);
+        $courseB = CourseUnit::factory()->create(['programme_id' => $programme->id, 'credit_units' => 4, 'year' => 1, 'semester' => 1]);
+        $courseC = CourseUnit::factory()->create(['programme_id' => $programme->id, 'credit_units' => 5, 'year' => 1, 'semester' => 2]);
+        $courseD = CourseUnit::factory()->create(['programme_id' => $programme->id, 'credit_units' => 6, 'year' => 2, 'semester' => 1]);
+
+        Score::factory()->create(['student_id' => $student->id, 'course_unit_id' => $courseA->id, 'score' => 78]); // A, 4.00
+        Score::factory()->create(['student_id' => $student->id, 'course_unit_id' => $courseB->id, 'score' => 42]); // E, 2.00
+        Score::factory()->create(['student_id' => $student->id, 'course_unit_id' => $courseC->id, 'score' => 66]); // B, 3.25
+        Score::factory()->create(['student_id' => $student->id, 'course_unit_id' => $courseD->id, 'score' => 60]); // BC, 3.00
+
+        // Through year 1 semester 1: (4.00*3 + 2.00*4) / 7 = 2.86
+        $this->assertSame(2.86, $student->cgpaThroughSemester(1, 1));
+
+        // Through year 1 semester 2: (12 + 8 + 3.25*5) / 12 = 3.02
+        $this->assertSame(3.02, $student->cgpaThroughSemester(1, 2));
+
+        // Through year 2 semester 1: adds courseD, ignoring nothing later.
+        // (12 + 8 + 16.25 + 3.00*6) / 18 = 54.25 / 18 = 3.01
+        $this->assertSame(3.01, $student->cgpaThroughSemester(2, 1));
+    }
+
+    public function test_cgpa_through_semester_with_no_scores_yet_is_null(): void
+    {
+        $student = Student::factory()->create();
+
+        $this->assertNull($student->cgpaThroughSemester(1, 1));
+    }
 }

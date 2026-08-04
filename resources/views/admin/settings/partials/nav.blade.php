@@ -9,4 +9,9 @@
             Security
         </a>
     </li>
+    <li class="nav-item">
+        <a class="nav-link {{ request()->routeIs('page.settings.institution') ? 'active' : '' }}" href="{{ route('page.settings.institution') }}">
+            Institution
+        </a>
+    </li>
 </ul>

@@ -90,6 +90,24 @@ class Student extends Model
         return $this->calculateGpa(fn ($query) => $query);
     }
 
+    /**
+     * Cumulative grade point average through a given year/semester
+     * (inclusive) — a snapshot as of that point in the programme, ignoring
+     * any scores recorded for later semesters.
+     */
+    public function cgpaThroughSemester(int $year, int $semester): ?float
+    {
+        return $this->calculateGpa(function ($query) use ($year, $semester) {
+            return $query->where(function ($query) use ($year, $semester) {
+                $query->where('course_units.year', '<', $year)
+                    ->orWhere(function ($query) use ($year, $semester) {
+                        $query->where('course_units.year', $year)
+                            ->where('course_units.semester', '<=', $semester);
+                    });
+            });
+        });
+    }
+
     private function calculateGpa(Closure $constraints): ?float
     {
         $query = $this->scores()->join('course_units', 'course_units.id', '=', 'scores.course_unit_id');

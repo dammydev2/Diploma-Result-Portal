@@ -30,6 +30,9 @@ Route::group([
     Route::put('settings/profile', 'ProfileController@update')->name('page.settings.profile.update');
     Route::delete('settings/profile', 'ProfileController@destroy')->name('page.settings.profile.destroy');
 
+    Route::get('settings/institution', 'InstitutionSettingsController@edit')->name('page.settings.institution');
+    Route::put('settings/institution', 'InstitutionSettingsController@update')->name('page.settings.institution.update');
+
     Route::middleware('password.confirm')->group(function () {
         Route::get('settings/security', 'SecurityController@edit')->name('page.settings.security');
         Route::put('settings/security/password', 'SecurityController@updatePassword')->name('page.settings.security.password');
@@ -48,6 +51,9 @@ Route::group([
     Route::crud('diploma-classification', 'DiplomaClassificationCrudController');
     Route::get('scores', 'ScoresController@index')->name('page.scores.index');
     Route::post('scores', 'ScoresController@store')->name('page.scores.store');
+    Route::get('results', 'ResultsController@index')->name('page.results.index');
+    Route::get('results/export/pdf', 'ResultsController@exportPdf')->name('page.results.export.pdf');
+    Route::get('results/export/excel', 'ResultsController@exportExcel')->name('page.results.export.excel');
 }); // this should be the absolute last line of this file
 
 /**
