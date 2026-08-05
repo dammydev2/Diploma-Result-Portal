@@ -91,6 +91,23 @@ class Student extends Model
     }
 
     /**
+     * Whether this student has a recorded score for every course unit in
+     * their programme — i.e. their record is complete enough to generate a
+     * Statement of Result. A programme with no course units yet is never
+     * considered complete.
+     */
+    public function hasCompleteResult(): bool
+    {
+        $totalCourseUnits = CourseUnit::query()->where('programme_id', $this->programme_id)->count();
+
+        if ($totalCourseUnits === 0) {
+            return false;
+        }
+
+        return $this->scores()->count() === $totalCourseUnits;
+    }
+
+    /**
      * Cumulative grade point average through a given year/semester
      * (inclusive) — a snapshot as of that point in the programme, ignoring
      * any scores recorded for later semesters.

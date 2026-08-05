@@ -163,4 +163,49 @@ class StudentTest extends TestCase
 
         $this->assertNull($student->cgpaThroughSemester(1, 1));
     }
+
+    public function test_has_complete_result_is_true_once_every_course_unit_is_scored(): void
+    {
+        $this->seed(GradingScaleSeeder::class);
+
+        $programme = Programme::factory()->create();
+        $student = Student::factory()->create(['programme_id' => $programme->id]);
+
+        $courseA = CourseUnit::factory()->create(['programme_id' => $programme->id, 'year' => 1, 'semester' => 1]);
+        $courseB = CourseUnit::factory()->create(['programme_id' => $programme->id, 'year' => 1, 'semester' => 2]);
+
+        $this->assertFalse($student->hasCompleteResult());
+
+        Score::factory()->create(['student_id' => $student->id, 'course_unit_id' => $courseA->id]);
+
+        $this->assertFalse($student->hasCompleteResult());
+
+        Score::factory()->create(['student_id' => $student->id, 'course_unit_id' => $courseB->id]);
+
+        $this->assertTrue($student->hasCompleteResult());
+    }
+
+    public function test_has_complete_result_is_false_when_the_programme_has_no_course_units(): void
+    {
+        $programme = Programme::factory()->create();
+        $student = Student::factory()->create(['programme_id' => $programme->id]);
+
+        $this->assertFalse($student->hasCompleteResult());
+    }
+
+    public function test_has_complete_result_ignores_course_units_belonging_to_other_programmes(): void
+    {
+        $this->seed(GradingScaleSeeder::class);
+
+        $programmeA = Programme::factory()->create();
+        $programmeB = Programme::factory()->create();
+        $student = Student::factory()->create(['programme_id' => $programmeA->id]);
+
+        $courseA = CourseUnit::factory()->create(['programme_id' => $programmeA->id]);
+        CourseUnit::factory()->create(['programme_id' => $programmeB->id]);
+
+        Score::factory()->create(['student_id' => $student->id, 'course_unit_id' => $courseA->id]);
+
+        $this->assertTrue($student->hasCompleteResult());
+    }
 }

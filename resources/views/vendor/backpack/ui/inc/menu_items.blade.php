@@ -8,6 +8,7 @@
 <x-backpack::menu-item title="Diploma classification" icon="la la-award" :link="backpack_url('diploma-classification')" />
 <x-backpack::menu-item title="Score entry" icon="la la-pencil-alt" :link="backpack_url('scores')" />
 <x-backpack::menu-item title="Semester result" icon="la la-file-alt" :link="backpack_url('results')" />
+<x-backpack::menu-item title="Statement of result" icon="la la-scroll" :link="backpack_url('statement-of-result')" />
 <x-backpack::menu-item title="Students" icon="la la-users" :link="backpack_url('students')" />
 <x-backpack::menu-item title="Courses" icon="la la-list" :link="backpack_url('courses')" />
 <x-backpack::menu-item title="Settings" icon="la la-cog" :link="route('page.settings.profile')" />

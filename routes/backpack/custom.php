@@ -54,6 +54,8 @@ Route::group([
     Route::get('results', 'ResultsController@index')->name('page.results.index');
     Route::get('results/export/pdf', 'ResultsController@exportPdf')->name('page.results.export.pdf');
     Route::get('results/export/excel', 'ResultsController@exportExcel')->name('page.results.export.excel');
+    Route::get('statement-of-result', 'StatementOfResultController@index')->name('page.statement-of-result.index');
+    Route::get('statement-of-result/export/pdf', 'StatementOfResultController@exportPdf')->name('page.statement-of-result.export.pdf');
 }); // this should be the absolute last line of this file
 
 /**

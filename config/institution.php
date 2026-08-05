@@ -17,4 +17,24 @@ return [
 
     'address' => env('INSTITUTION_ADDRESS', ''),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Statement of result branding
+    |--------------------------------------------------------------------------
+    |
+    | The background artwork and registrar sign-off shown on a student's
+    | Statement of Result. The bundled defaults below ship with the app so
+    | the document looks right out of the box; an admin can replace any of
+    | them from the Institution settings page without a deploy.
+    |
+    */
+
+    'statement_background' => 'images/statement-of-result/default-background.jpg',
+
+    'registrar_signature' => 'images/statement-of-result/default-signature.png',
+
+    'registrar_name' => env('REGISTRAR_NAME', 'Citp Durosinmi A.E. MNCS, MSP'),
+
+    'registrar_title' => env('REGISTRAR_TITLE', 'Registrar'),
+
 ];

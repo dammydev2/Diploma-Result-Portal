@@ -204,27 +204,72 @@ the institution name/address — editable at `/admin/settings/institution`
   student's row necessarily covers every course), so the note only ever
   shows on the not-ready screen, never on the printed PDF/Excel.
 
+### Statement of result (`/admin/statement-of-result`)
+
+A single student's full academic transcript, covering every semester of
+their programme on one printable page: pick a **Programme**, then a **Year
+of admission**, then a **Student**, and (once their result is complete) see
+their statement — student info block, then one bordered box per (year,
+semester) block laid out 2-per-row (matching the classic two-session-per-
+page transcript layout), each showing that semester's courses with score,
+credit units, and letter grade, plus **MAX UNIT**/**UNIT PASSED** and
+**GPA**/**CGPA** for that point in the programme. A **Date of approval**
+field (defaulting to today, editable) feeds both the document's date field
+and its "date of approval by the academic board" line. Exportable to
+**PDF**, matching the on-screen preview.
+
+- Only viewable/downloadable once the student has a recorded score for
+  **every** course unit in their programme (`Student::hasCompleteResult()`)
+  — otherwise the page explains the result isn't complete yet, and the
+  export route 404s. Unlike Semester Result, there's no "blank cell"
+  allowance here — a statement of result is only generated once a
+  student's full record exists.
+- Each semester block's **GPA** and **CGPA** use the same
+  `Student::gpaFor()` / `Student::cgpaThroughSemester()` methods as the
+  Semester Result page, so the numbers agree everywhere in the app.
+  **UNIT PASSED** only counts credit units for courses graded above F (a
+  passed course still counts toward MAX UNIT either way).
+- The final **CUMMULATIVE GPA** and **FINAL GRADE/CLASS** (via
+  `DiplomaClassification::forCgpa()`) summarize the whole programme.
+- The page and PDF are built from a shared Blade partial
+  (`admin.statement-of-result-document`) so the on-screen preview and the
+  printed PDF never drift apart.
+- Every semester box on the page renders at the same height, regardless of
+  how many courses it holds — the shorter boxes are padded with blank
+  table rows so the grid lines up cleanly. Since there's no way to know a
+  course title's actual wrapped line count ahead of PDF rendering,
+  `StatementOfResultController::estimateBlockLines()` approximates it from
+  title length and deliberately over-estimates — a little extra blank
+  space at the bottom of a box beats boxes that visibly don't line up.
+- The background artwork, and the registrar's name/title/signature, are
+  configured on the **Institution** settings page (see below) — this is
+  the "branding" of the document the school actually issues, not something
+  this app invents. The bundled defaults ship pre-filled to match exactly
+  what the school already issues, extracted from a real sample statement
+  of result provided when this feature was built.
+
 ### Settings (`/admin/settings`)
 
 Account settings (Profile, Security — password, 2FA, passkeys) live here,
-alongside **Institution** (`/admin/settings/institution`): the institution
-name/address shown on printable documents (currently just the semester
-result). This is admin-editable rather than `.env`-only, so a non-technical
-admin can update it without a deploy, and so the same mechanism scales to
-other institutions/deployments later.
+alongside **Institution** (`/admin/settings/institution`): everything
+shown on printable documents — institution name/address (semester result
+and statement of result), plus the Statement of Result's background
+artwork and registrar name/title/signature (uploaded as images). All of
+this is admin-editable rather than `.env`-only, so a non-technical admin
+can update it without a deploy, and so the same mechanism scales to other
+institutions/deployments later.
 
 It's backed by a generic key-value `settings` table (`Setting` model,
 `Setting::get(string $key, ?string $default = null)` /
 `Setting::set(string $key, ?string $value)`), rather than a one-off table
 just for institution details — any future admin-editable setting reuses
-this instead of a new migration. `config/institution.php` still holds the
-factory-default values, used as the fallback until an admin saves a value
-for the first time.
-
-### Planned next
-
-- Statement of result generation/printing after the 4th semester, combining
-  the diploma classification table above with a student's final CGPA.
+this instead of a new migration. Uploaded images are stored via the
+`public` filesystem disk (`storage/app/public`, symlinked at
+`public/storage`) under `institution/`, replacing (and deleting) whatever
+was previously uploaded for that setting. `config/institution.php` holds
+the factory-default values and bundled default images
+(`public/images/statement-of-result/`), used as the fallback until an
+admin uploads/saves their own.
 
 ## Tech stack
 
@@ -235,8 +280,8 @@ for the first time.
   course/student browsers, and account settings share this one theme)
 - Livewire 4 + Flux UI (guest-facing auth pages only — login, register,
   password reset, 2FA challenge; not used anywhere behind login)
-- barryvdh/laravel-dompdf (PDF export on the course/student browsers and the
-  semester result)
+- barryvdh/laravel-dompdf (PDF export on the course/student browsers, the
+  semester result, and the statement of result)
 - openspout/openspout (Excel export on the course/student browsers and the
   semester result — `maatwebsite/excel` was tried first but its underlying
   spreadsheet library doesn't yet support PHP 8.5)
