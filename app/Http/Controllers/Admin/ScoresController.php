@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\Permission;
 use App\Models\CourseUnit;
 use App\Models\Programme;
 use App\Models\Score;
@@ -12,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Class ScoresController
@@ -23,6 +25,7 @@ class ScoresController extends Controller
     public function index(Request $request): View
     {
         $filters = $this->resolveFilters($request);
+        $user = Auth::user();
 
         return view('admin.scores', [
             'title' => 'Score Entry',
@@ -30,6 +33,8 @@ class ScoresController extends Controller
                 trans('backpack::crud.admin') => backpack_url('dashboard'),
                 'Score Entry' => false,
             ],
+            'canEnterScores' => $user->hasPermission(Permission::ScoreEntry),
+            'canEditScores' => $user->hasPermission(Permission::EditScore),
             ...$filters,
         ]);
     }
@@ -48,11 +53,21 @@ class ScoresController extends Controller
 
         abort_unless($courseUnit->programme_id === (int) $validated['programme_id'], 422);
 
+        $user = Auth::user();
+        $canEnterScores = $user->hasPermission(Permission::ScoreEntry);
+        $canEditScores = $user->hasPermission(Permission::EditScore);
+
         $students = Student::query()
             ->where('programme_id', $validated['programme_id'])
             ->where('year_of_admission', $validated['year_of_admission'])
             ->get()
             ->keyBy('id');
+
+        $existingScores = Score::query()
+            ->where('course_unit_id', $courseUnit->id)
+            ->whereIn('student_id', $students->pluck('id'))
+            ->get()
+            ->keyBy('student_id');
 
         $saved = 0;
 
@@ -64,6 +79,16 @@ class ScoresController extends Controller
             $student = $students->get((int) $studentId);
 
             if (! $student || $student->isSuspended) {
+                continue;
+            }
+
+            $scoreAlreadyExists = $existingScores->has($student->id);
+
+            if ($scoreAlreadyExists && ! $canEditScores) {
+                continue;
+            }
+
+            if (! $scoreAlreadyExists && ! $canEnterScores) {
                 continue;
             }
 

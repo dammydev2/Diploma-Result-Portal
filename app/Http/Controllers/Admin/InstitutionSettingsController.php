@@ -38,6 +38,7 @@ class InstitutionSettingsController extends Controller
             'registrarTitle' => $branding['registrarTitle'],
             'backgroundUrl' => $branding['backgroundUrl'],
             'signatureUrl' => $branding['signatureUrl'],
+            'transcriptBackgroundUrl' => $branding['transcriptBackgroundUrl'],
         ]);
     }
 
@@ -50,6 +51,7 @@ class InstitutionSettingsController extends Controller
             'registrar_title' => ['required', 'string', 'max:255'],
             'statement_background' => ['nullable', 'image', 'max:5120'],
             'registrar_signature' => ['nullable', 'image', 'max:5120'],
+            'transcript_background' => ['nullable', 'image', 'max:5120'],
         ]);
 
         Setting::set('institution_name', $validated['name']);
@@ -59,6 +61,7 @@ class InstitutionSettingsController extends Controller
 
         $this->storeUploadIfPresent($request, 'statement_background', 'statement_background_path', 'statement-background');
         $this->storeUploadIfPresent($request, 'registrar_signature', 'registrar_signature_path', 'registrar-signature');
+        $this->storeUploadIfPresent($request, 'transcript_background', 'transcript_background_path', 'transcript-background');
 
         \Alert::success('Institution settings updated.')->flash();
 

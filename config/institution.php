@@ -33,6 +33,20 @@ return [
 
     'registrar_signature' => 'images/statement-of-result/default-signature.png',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Transcript branding
+    |--------------------------------------------------------------------------
+    |
+    | The background artwork shown on a student's Transcript. Kept as its own
+    | setting (rather than reusing the Statement of Result background) so an
+    | admin can use different artwork for each document; the registrar
+    | sign-off above is shared between both documents.
+    |
+    */
+
+    'transcript_background' => 'images/transcript/default-background.jpg',
+
     'registrar_name' => env('REGISTRAR_NAME', 'Citp Durosinmi A.E. MNCS, MSP'),
 
     'registrar_title' => env('REGISTRAR_TITLE', 'Registrar'),

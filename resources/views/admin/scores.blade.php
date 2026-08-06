@@ -93,6 +93,14 @@
                                                     <td>
                                                         @if ($student->isSuspended)
                                                             <span class="badge bg-danger-lt">Suspended</span>
+                                                        @elseif ($existingScore ? ! $canEditScores : ! $canEnterScores)
+                                                            <input
+                                                                type="number"
+                                                                class="form-control form-control-sm"
+                                                                style="max-width: 6rem;"
+                                                                value="{{ $existingScore?->score }}"
+                                                                disabled
+                                                            >
                                                         @else
                                                             <input
                                                                 type="number"

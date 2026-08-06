@@ -2,20 +2,43 @@
 
 A web application for a Nigerian diploma-awarding school to manage student
 records, record course scores, calculate grade points, and generate
-statements of result.
+statements of result and transcripts.
 
 ## Domain overview
 
 - A diploma programme runs across **4 semesters**.
 - At the end of each semester, the student's **CGPA** (Cumulative Grade
   Point Average) is calculated from that semester's scores.
-- After the 4th (final) semester, a printable **statement of result** can be
-  generated for the student, summarizing performance across all 4 semesters.
+- After the 4th (final) semester, a printable **statement of result** (or
+  its raw-score counterpart, the **transcript**) can be generated for the
+  student, summarizing performance across all 4 semesters.
 - Students are never deleted from the system — they can only be
   **suspended**. A suspended student cannot have new scores recorded against
   them.
+- Admins are either a **super admin** (unrestricted) or a regular admin
+  limited to an individually-checked set of permissions — see **Roles and
+  permissions** below.
 
 ## Features
+
+### Public homepage (`/`)
+
+A plain marketing-style landing page for whoever runs the school's records
+office — not a student-facing portal, since there is no self-service result
+checking in this app (see **Roles and permissions** below). It shows the
+institution's name/address (pulled from the same `Setting`-backed values as
+the rest of the app, see **Settings**), live counts of programmes and
+students, the current programme list, an overview of what the result
+management system does, and a **Staff Login** call to action pointing at
+`/login`. Built from `WelcomeController` + `resources/views/welcome.blade.php`
+rather than the framework's default static `Route::view('/', 'welcome')`, so
+it can pull that live data instead of hardcoding it.
+
+The hero background (`public/images/welcome/hero-campus.jpg`) is a bundled
+stock photo (Wikimedia Commons, CC BY-SA 3.0) chosen because it shows a
+generic campus building with no identifiable people and no other
+institution's name legible in the shot — replace it with the school's own
+photography whenever available.
 
 ### One unified admin panel
 
@@ -33,6 +56,21 @@ from the account dropdown (click your name, top of the sidebar) or the
 **Settings** sidebar link. The Tailwind/Flux UI stack is still used, but only
 for the pages a user sees *before* they're authenticated (login, register,
 password reset, 2FA challenge), since those can't use the Backpack shell.
+
+### Dashboard (`/admin/dashboard`)
+
+A plain landing page: "Welcome, {name}" and up to three clickable stat
+cards — **Total students**, **Total programmes**, **Total admins** — each
+linking to its respective section. Backpack's default "Getting Started"
+onboarding widget has been removed entirely.
+
+- Each card only appears if the logged-in admin can actually see that
+  section: Total students needs `manage_students`, Total programmes needs
+  `manage_programmes`, Total admins is super-admin only — same permissions
+  that gate the sidebar links (see **Roles and permissions** below), so a
+  card never points somewhere the admin would immediately get a 403.
+- This overrides Backpack's own `backpack.ui::dashboard` view, at
+  `resources/views/vendor/backpack/ui/dashboard.blade.php`.
 
 ### Programmes and course units
 
@@ -248,16 +286,43 @@ and its "date of approval by the academic board" line. Exportable to
   what the school already issues, extracted from a real sample statement
   of result provided when this feature was built.
 
+### Transcript (`/admin/transcript`)
+
+The same document as the Statement of Result above — same filters, same
+per-(year, semester) box layout, same GPA/CGPA/classification figures,
+same blank-row padding, same shared-partial/PDF-parity approach — with one
+difference: each course row shows the student's **raw score** (0–100)
+instead of its derived letter grade. Everything else, including the
+"complete result required" gate and `super_admin_only` restriction, is
+identical.
+
+- Built from `TranscriptController`, a near line-for-line copy of
+  `StatementOfResultController` — the GPA/CGPA/classification math is
+  untouched (it's driven by `Score::weighting`, not by which column is
+  displayed), so only the document partial's course-row markup differs
+  (`$row['score']?->score` instead of `$row['score']?->letter_grade`,
+  header "SCORE" instead of "GRADE").
+- Uses its own shared partial (`admin.transcript-document`) and its own
+  prefixed CSS (`.tr-*` in `admin.transcript-styles`) so it can evolve
+  independently of the Statement of Result's markup/styling.
+- Has its **own background artwork**, configurable separately from the
+  Statement of Result's — see **Settings** below — so a school can use
+  different letterhead art for each document. The registrar's
+  name/title/signature are shared between both, since both are signed off
+  by the same registrar.
+
 ### Settings (`/admin/settings`)
 
 Account settings (Profile, Security — password, 2FA, passkeys) live here,
 alongside **Institution** (`/admin/settings/institution`): everything
-shown on printable documents — institution name/address (semester result
-and statement of result), plus the Statement of Result's background
-artwork and registrar name/title/signature (uploaded as images). All of
-this is admin-editable rather than `.env`-only, so a non-technical admin
-can update it without a deploy, and so the same mechanism scales to other
-institutions/deployments later.
+shown on printable documents — institution name/address (semester result,
+statement of result, and transcript), the Statement of Result's background
+artwork, the Transcript's background artwork (uploaded separately, so each
+document can carry different letterhead art), and the shared registrar
+name/title/signature (uploaded as images). All of this is admin-editable
+rather than `.env`-only, so a non-technical admin can update it without a
+deploy, and so the same mechanism scales to other institutions/deployments
+later.
 
 It's backed by a generic key-value `settings` table (`Setting` model,
 `Setting::get(string $key, ?string $default = null)` /
@@ -266,10 +331,61 @@ just for institution details — any future admin-editable setting reuses
 this instead of a new migration. Uploaded images are stored via the
 `public` filesystem disk (`storage/app/public`, symlinked at
 `public/storage`) under `institution/`, replacing (and deleting) whatever
-was previously uploaded for that setting. `config/institution.php` holds
-the factory-default values and bundled default images
-(`public/images/statement-of-result/`), used as the fallback until an
-admin uploads/saves their own.
+was previously uploaded for that setting (`statement_background_path`,
+`transcript_background_path`, `registrar_signature_path`).
+`config/institution.php` holds the factory-default values and bundled
+default images (`public/images/statement-of-result/` and
+`public/images/transcript/`), used as the fallback until an admin
+uploads/saves their own — the transcript's bundled default currently
+reuses the statement of result's artwork as a starting point until a
+school uploads dedicated transcript letterhead art.
+
+### Roles and permissions (`/admin/admins`)
+
+Every admin account is either a **super admin** (unrestricted access to
+everything) or a regular admin with an individually-checked set of
+permissions. There's no named "role" in between — the checkboxes granted to
+an admin *are* their role.
+
+- `/admin/admins`, **super admin only**: add other admins, and for each one
+  either make them a super admin or check exactly which of the following
+  they can do — **Programmes**, **Students**, **Suspend and reactivate a
+  student**, **Add course unit**, **Edit course unit**, **Edit grading
+  scale**, **Edit diploma classification**, **Score entry**, **Edit
+  score**, **Semester result**. Three areas are deliberately *not*
+  checkboxes and can only ever be done by a super admin: **Statement of
+  Result**, **Transcript**, and **Institution settings**.
+- **Add course unit** vs **Edit course unit**, and **Score entry** vs
+  **Edit score**, are intentionally separate — an admin can be allowed to
+  enter brand new records without being allowed to change ones that
+  already exist, or vice versa. `CourseUnitCrudController::setup()` denies
+  Backpack's `create`/`update`/`delete` operations individually based on
+  which of the two the current user has. `ScoresController::store()` does
+  the equivalent per submitted score, checking whether a `Score` already
+  exists for that student/course before deciding whether the *entry* or
+  the *edit* permission applies to that one cell — silently skipping it
+  otherwise, the same way it already silently skips a suspended student's
+  score. **Suspend and reactivate a student** is likewise its own
+  permission, separate from general **Students** access.
+- Enforcement lives at the route level (`routes/backpack/custom.php`),
+  where every route is wrapped in `Route::middleware('can:...')`, checked
+  against Laravel Gates registered per `App\Enums\Permission` case (plus a
+  few compound gates — e.g. `view_course_units` passes for *either*
+  **Add** or **Edit course unit** — see
+  `AppServiceProvider::configurePermissionGates()`). The sidebar
+  (`menu_items.blade.php`) wraps each item in a matching `@can(...)`, so an
+  admin only ever sees the pages they can actually open.
+- `User::hasPermission(Permission $permission)` is the single source of
+  truth — always `true` for a super admin regardless of their individual
+  `permissions`, otherwise checks that JSON-backed column (cast to a
+  `Collection<Permission>` via `AsEnumCollection`).
+- Self-lockout guards on `AdminUserController`: you can't delete your own
+  account, and the last remaining super admin can't demote themselves —
+  both would otherwise be able to lock every admin out of the panel.
+- Every account that existed before this feature shipped was promoted to
+  super admin in the migration that added it, so nobody already using the
+  app lost access. Only admins created afterward start out
+  permission-limited by default.
 
 ## Tech stack
 

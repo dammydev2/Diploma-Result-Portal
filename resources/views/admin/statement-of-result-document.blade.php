@@ -38,9 +38,9 @@
                         <table class="sor-course-table">
                             <tr class="sor-course-header">
                                 <td style="width: 12%;">COURSE CODE</td>
-                                <td style="width: 70.5%;">TITLE</td>
-                                <td class="sor-numeric" style="width: 7.8%;">UNIT</td>
-                                <td class="sor-numeric" style="width: 9.7%;">GRADE</td>
+                                <td style="width: 65.5%;">TITLE</td>
+                                <td class="sor-numeric" style="width: 9.8%;">UNIT</td>
+                                <td class="sor-numeric" style="width: 12.7%;">GRADE</td>
                             </tr>
                             @foreach ($block['courses'] as $row)
                                 <tr>

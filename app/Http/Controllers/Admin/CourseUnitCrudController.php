@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\Permission;
 use App\Http\Requests\CourseUnitRequest;
 use App\Models\CourseUnit;
 use App\Models\Programme;
@@ -15,6 +16,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Class CourseUnitCrudController
@@ -42,6 +44,16 @@ class CourseUnitCrudController extends CrudController
         CRUD::setModel(CourseUnit::class);
         CRUD::setRoute(config('backpack.base.route_prefix').'/course-unit');
         CRUD::setEntityNameStrings('course unit', 'course units');
+
+        $user = Auth::user();
+
+        if (! $user->hasPermission(Permission::AddCourseUnits)) {
+            CRUD::denyAccess(['create']);
+        }
+
+        if (! $user->hasPermission(Permission::EditCourseUnits)) {
+            CRUD::denyAccess(['update', 'delete']);
+        }
     }
 
     /**

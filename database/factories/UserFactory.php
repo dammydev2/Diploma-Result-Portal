@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Permission;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -33,6 +34,13 @@ class UserFactory extends Factory
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
+            // The factory defaults to a super admin (unrestricted access) so
+            // every existing test written before permissions existed keeps
+            // working unmodified. Tests exercising permission restrictions
+            // opt in explicitly via withPermissions(), which also flips
+            // is_super_admin back to false.
+            'is_super_admin' => true,
+            'permissions' => [],
         ];
     }
 
@@ -55,6 +63,31 @@ class UserFactory extends Factory
             'two_factor_secret' => encrypt('secret'),
             'two_factor_recovery_codes' => encrypt(json_encode(['recovery-code-1'])),
             'two_factor_confirmed_at' => now(),
+        ]);
+    }
+
+    /**
+     * Indicate that the model is a super admin, with unrestricted access
+     * regardless of individually granted permissions.
+     */
+    public function superAdmin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_super_admin' => true,
+        ]);
+    }
+
+    /**
+     * Indicate that the model has been granted a specific set of
+     * permissions (and is not a super admin).
+     *
+     * @param  list<Permission>  $permissions
+     */
+    public function withPermissions(array $permissions): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_super_admin' => false,
+            'permissions' => $permissions,
         ]);
     }
 }

@@ -3,7 +3,7 @@
 @section('content')
 <section class="header-operation container-fluid animated fadeIn d-flex mb-2 align-items-baseline d-print-none" bp-section="page-header">
     <h1 class="text-capitalize mb-0" bp-section="page-heading">Institution settings</h1>
-    <p class="ms-2 ml-2 mb-0" bp-section="page-subheading">Shown on printable documents, e.g. semester results and statements of result</p>
+    <p class="ms-2 ml-2 mb-0" bp-section="page-subheading">Shown on printable documents, e.g. semester results, statements of result, and transcripts</p>
 </section>
 <section class="content container-fluid animated fadeIn" bp-section="content">
     @include('admin.settings.partials.nav')
@@ -98,6 +98,33 @@
                                 required
                             >
                             @error('registrar_title')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h3 class="mb-1">Transcript</h3>
+                        <p class="text-muted small">
+                            The background artwork shown on a student's printed Transcript. Kept
+                            separate from the Statement of Result background above so each
+                            document can use its own artwork.
+                        </p>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="transcript_background">Background image</label>
+                            <div class="mb-2">
+                                <img src="{{ $transcriptBackgroundUrl }}" alt="Current transcript background" class="border rounded" style="max-width: 220px;">
+                            </div>
+                            <input
+                                type="file"
+                                class="form-control @error('transcript_background') is-invalid @enderror"
+                                id="transcript_background"
+                                name="transcript_background"
+                                accept="image/*"
+                            >
+                            <div class="form-text">Replaces the current transcript background. Leave blank to keep it.</div>
+                            @error('transcript_background')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Permission;
 use App\Enums\ProgrammeLevel;
 use App\Models\CourseUnit;
 use App\Models\Programme;
@@ -189,5 +190,95 @@ class CourseUnitCrudTest extends TestCase
         $response->assertOk();
 
         $this->assertDatabaseMissing('course_units', ['id' => $courseUnit->id]);
+    }
+
+    public function test_users_without_add_permission_cannot_reach_the_create_form(): void
+    {
+        $this->actingAs(User::factory()->withPermissions([Permission::EditCourseUnits])->create());
+
+        Programme::factory()->create();
+
+        $response = $this->get(route('course-unit.create'));
+
+        $response->assertForbidden();
+    }
+
+    public function test_users_without_edit_permission_cannot_update_a_course_unit(): void
+    {
+        $this->actingAs(User::factory()->withPermissions([Permission::AddCourseUnits])->create());
+
+        $courseUnit = CourseUnit::factory()->create();
+
+        $response = $this->put(route('course-unit.update', $courseUnit->id), [
+            'id' => $courseUnit->id,
+            'programme_id' => $courseUnit->programme_id,
+            'code' => 'UPD 111',
+            'title' => 'Updated title',
+            'credit_units' => $courseUnit->credit_units,
+            'year' => $courseUnit->year,
+            'semester' => $courseUnit->semester,
+        ]);
+
+        $response->assertForbidden();
+    }
+
+    public function test_users_without_edit_permission_cannot_delete_a_course_unit(): void
+    {
+        $this->actingAs(User::factory()->withPermissions([Permission::AddCourseUnits])->create());
+
+        $courseUnit = CourseUnit::factory()->create();
+
+        $response = $this->delete(route('course-unit.destroy', $courseUnit->id));
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('course_units', ['id' => $courseUnit->id]);
+    }
+
+    public function test_users_with_only_add_permission_can_still_create_a_course_unit(): void
+    {
+        $this->actingAs(User::factory()->withPermissions([Permission::AddCourseUnits])->create());
+
+        $programme = Programme::factory()->create();
+
+        $response = $this->post(route('course-unit.store'), [
+            'programme_id' => $programme->id,
+            'code' => 'COM 111',
+            'title' => 'Introduction to Computing',
+            'credit_units' => 3,
+            'year' => 1,
+            'semester' => 1,
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('course_units', ['code' => 'COM 111']);
+    }
+
+    public function test_users_with_only_edit_permission_can_still_update_a_course_unit(): void
+    {
+        $this->actingAs(User::factory()->withPermissions([Permission::EditCourseUnits])->create());
+
+        $courseUnit = CourseUnit::factory()->create();
+
+        $response = $this->put(route('course-unit.update', $courseUnit->id), [
+            'id' => $courseUnit->id,
+            'programme_id' => $courseUnit->programme_id,
+            'code' => 'UPD 111',
+            'title' => 'Updated title',
+            'credit_units' => $courseUnit->credit_units,
+            'year' => $courseUnit->year,
+            'semester' => $courseUnit->semester,
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('course_units', ['id' => $courseUnit->id, 'code' => 'UPD 111']);
+    }
+
+    public function test_users_without_either_course_unit_permission_cannot_view_the_list(): void
+    {
+        $this->actingAs(User::factory()->withPermissions([])->create());
+
+        $response = $this->get(route('course-unit.index'));
+
+        $response->assertForbidden();
     }
 }

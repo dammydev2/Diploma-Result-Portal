@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Permission;
 use App\Models\CourseUnit;
 use App\Models\Programme;
 use App\Models\Score;
@@ -175,5 +176,112 @@ class ScoresPageTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors(["scores.{$student->id}"]);
+    }
+
+    public function test_users_without_either_score_permission_cannot_view_the_page(): void
+    {
+        $this->actingAs(User::factory()->withPermissions([])->create());
+
+        $response = $this->get(route('page.scores.index'));
+
+        $response->assertForbidden();
+    }
+
+    public function test_users_with_only_score_entry_can_add_a_new_score_but_not_edit_an_existing_one(): void
+    {
+        $this->actingAs(User::factory()->withPermissions([Permission::ScoreEntry])->create());
+        $this->seed(GradingScaleSeeder::class);
+
+        $programme = Programme::factory()->create();
+        $courseUnit = CourseUnit::factory()->create(['programme_id' => $programme->id]);
+        $newStudent = Student::factory()->create(['programme_id' => $programme->id, 'year_of_admission' => 2024]);
+        $existingStudent = Student::factory()->create(['programme_id' => $programme->id, 'year_of_admission' => 2024]);
+
+        $existingScore = Score::factory()->create([
+            'student_id' => $existingStudent->id,
+            'course_unit_id' => $courseUnit->id,
+            'score' => 42,
+        ]);
+
+        $this->post(route('page.scores.store'), [
+            'programme_id' => $programme->id,
+            'year_of_admission' => 2024,
+            'course_unit_id' => $courseUnit->id,
+            'scores' => [
+                $newStudent->id => 78,
+                $existingStudent->id => 90,
+            ],
+        ]);
+
+        $this->assertDatabaseHas('scores', ['student_id' => $newStudent->id, 'score' => 78]);
+        $this->assertSame(42, $existingScore->fresh()->score);
+    }
+
+    public function test_users_with_only_edit_score_can_edit_an_existing_score_but_not_add_a_new_one(): void
+    {
+        $this->actingAs(User::factory()->withPermissions([Permission::EditScore])->create());
+        $this->seed(GradingScaleSeeder::class);
+
+        $programme = Programme::factory()->create();
+        $courseUnit = CourseUnit::factory()->create(['programme_id' => $programme->id]);
+        $newStudent = Student::factory()->create(['programme_id' => $programme->id, 'year_of_admission' => 2024]);
+        $existingStudent = Student::factory()->create(['programme_id' => $programme->id, 'year_of_admission' => 2024]);
+
+        $existingScore = Score::factory()->create([
+            'student_id' => $existingStudent->id,
+            'course_unit_id' => $courseUnit->id,
+            'score' => 42,
+        ]);
+
+        $this->post(route('page.scores.store'), [
+            'programme_id' => $programme->id,
+            'year_of_admission' => 2024,
+            'course_unit_id' => $courseUnit->id,
+            'scores' => [
+                $newStudent->id => 78,
+                $existingStudent->id => 90,
+            ],
+        ]);
+
+        $this->assertDatabaseMissing('scores', ['student_id' => $newStudent->id]);
+        $this->assertSame(90, $existingScore->fresh()->score);
+    }
+
+    public function test_the_input_for_an_unscored_student_is_disabled_without_score_entry_permission(): void
+    {
+        $this->actingAs(User::factory()->withPermissions([Permission::EditScore])->create());
+
+        $programme = Programme::factory()->create();
+        $courseUnit = CourseUnit::factory()->create(['programme_id' => $programme->id]);
+        $student = Student::factory()->create(['programme_id' => $programme->id, 'year_of_admission' => 2024]);
+
+        $response = $this->get(route('page.scores.index', [
+            'programme_id' => $programme->id,
+            'year_of_admission' => 2024,
+            'course_unit_id' => $courseUnit->id,
+        ]));
+
+        $response->assertOk();
+        $response->assertDontSee("scores[{$student->id}]", false);
+    }
+
+    public function test_the_input_for_a_scored_student_is_disabled_without_edit_score_permission(): void
+    {
+        $this->actingAs(User::factory()->withPermissions([Permission::ScoreEntry])->create());
+        $this->seed(GradingScaleSeeder::class);
+
+        $programme = Programme::factory()->create();
+        $courseUnit = CourseUnit::factory()->create(['programme_id' => $programme->id]);
+        $student = Student::factory()->create(['programme_id' => $programme->id, 'year_of_admission' => 2024]);
+        Score::factory()->create(['student_id' => $student->id, 'course_unit_id' => $courseUnit->id, 'score' => 55]);
+
+        $response = $this->get(route('page.scores.index', [
+            'programme_id' => $programme->id,
+            'year_of_admission' => 2024,
+            'course_unit_id' => $courseUnit->id,
+        ]));
+
+        $response->assertOk();
+        $response->assertDontSee("scores[{$student->id}]", false);
     }
 }

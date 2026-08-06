@@ -7,11 +7,11 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * Resolves the school-branding shown on printable documents: institution
- * name/address, the registrar's name/title, and the Statement of Result
- * background artwork and registrar signature image. Each of the latter two
- * falls back to a bundled default asset (shipped in public/images/
- * statement-of-result) until an admin uploads their own from the
- * Institution settings page.
+ * name/address, the registrar's name/title, and the background artwork and
+ * registrar signature image used on the Statement of Result and Transcript.
+ * Each background/signature falls back to a bundled default asset (shipped
+ * in public/images/statement-of-result and public/images/transcript) until
+ * an admin uploads their own from the Institution settings page.
  */
 trait ResolvesInstitutionBranding
 {
@@ -25,12 +25,15 @@ trait ResolvesInstitutionBranding
      *     backgroundPath: string,
      *     signatureUrl: string,
      *     signaturePath: string,
+     *     transcriptBackgroundUrl: string,
+     *     transcriptBackgroundPath: string,
      * }
      */
     private function resolveBranding(): array
     {
         $background = $this->resolveAsset('statement_background_path', config('institution.statement_background'));
         $signature = $this->resolveAsset('registrar_signature_path', config('institution.registrar_signature'));
+        $transcriptBackground = $this->resolveAsset('transcript_background_path', config('institution.transcript_background'));
 
         return [
             'institutionName' => Setting::get('institution_name', config('institution.name')),
@@ -41,6 +44,8 @@ trait ResolvesInstitutionBranding
             'backgroundPath' => $background['path'],
             'signatureUrl' => $signature['url'],
             'signaturePath' => $signature['path'],
+            'transcriptBackgroundUrl' => $transcriptBackground['url'],
+            'transcriptBackgroundPath' => $transcriptBackground['path'],
         ];
     }
 

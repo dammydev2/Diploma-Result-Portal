@@ -34,10 +34,13 @@
                     {{ __('Security') }}
                 </a>
                 <div class="dropdown-divider"></div>
-                <a class="dropdown-item text-danger" href="{{ backpack_url('logout') }}">
-                    <i class="nav-icon la la-sign-out-alt d-block"></i>
-                    {{ trans('backpack::base.logout') }}
-                </a>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="dropdown-item text-danger">
+                        <i class="nav-icon la la-sign-out-alt d-block"></i>
+                        {{ trans('backpack::base.logout') }}
+                    </button>
+                </form>
             </div>
         </li>
     @endif
